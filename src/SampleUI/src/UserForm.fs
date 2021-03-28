@@ -1,12 +1,12 @@
 ﻿module UserForm
 
 open System
-open Feliz
 open Fable.React
 open Fable.React.Props
 open Fable.FormValidation
 open Css
 open Ctrls
+open Feliz
 
 type Model = {
     FName: string
@@ -111,7 +111,8 @@ let Page() =
                                 | None -> Ok()
                             )
                         ])
-                        prop.className "date"
+                        prop.className $"date {B.``form-control``}"
+                        prop.style [style.width 300]
                         prop.type'.date
                         if model.BirthDate.IsSome
                         then prop.value model.BirthDate.Value
