@@ -6,3 +6,7 @@
 .date {
 	display: block;
 }
+
+.required {
+	color: red;
+}

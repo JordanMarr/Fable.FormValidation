@@ -23,9 +23,10 @@ let init =
       Phone = ""
       BirthDate = None }
 
-let formInput txt inputCtrl = 
+let requiredField fieldName inputCtrl = 
     div [Class B.``mb-2``] [
-        label [Style[Width "140px"]] [str txt]
+        label [Class B.``mr-1``] [str fieldName]
+        span [Class "required"; Title "Required"] [str "*"]
         inputCtrl
     ]
 
@@ -53,7 +54,7 @@ let Page() =
             col [
 
                 let fieldName = "First Name"
-                formInput fieldName (
+                requiredField fieldName (
                     input [
                         Ref (rulesFor fieldName [Required; MinLen 2; MaxLen 50])
                         Class B.``form-control``
@@ -63,7 +64,7 @@ let Page() =
                 )
 
                 let fieldName = "Last Name"
-                formInput fieldName (
+                requiredField fieldName (
                     input [
                         Ref (rulesFor fieldName [Required; MinLen 2; MaxLen 50])
                         Class B.``form-control``
@@ -73,7 +74,7 @@ let Page() =
                 )
 
                 let fieldName = "Email"
-                formInput fieldName (
+                requiredField fieldName (
                     input [
                         Ref (rulesFor fieldName [ 
                             Required 
@@ -86,7 +87,7 @@ let Page() =
                 )                
 
                 let fieldName = "Phone"
-                formInput fieldName (
+                requiredField fieldName (
                     input [
                         Ref (rulesFor fieldName [ 
                             Required 
@@ -100,7 +101,7 @@ let Page() =
                 )
                 
                 let fieldName = "Birth Date"
-                formInput fieldName (
+                requiredField fieldName (
                     Html.input [
                         prop.ref (rulesFor fieldName [Required])
                         prop.className "date"
