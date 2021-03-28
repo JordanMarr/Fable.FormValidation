@@ -89,3 +89,18 @@ This example features the Feliz date input with a custom rule:
 
 ![image](https://user-images.githubusercontent.com/1030435/112770388-959fc480-8ff4-11eb-8818-1c446a66c8b5.png)
 
+
+## Edge Cases
+You may encounter a situation where your validated input field is sometimes hidden and then redisplayed (as in the case of a collapsible panel).
+This can cause an issue where React regenerates a different hashcode for the input each time it is made visible.  
+To resolve this problem, you can add a override "vkey" (validation key) that will be used instead, which will allow Fable.FormValidation to consistently track the input.
+
+``` fsharp
+    input [
+        Ref (rulesFor "First Name" [Required; MinLen 2; MaxLen 50])
+        Data ("vkey", ("username-" + model.Id)) // This value must uniquely identify this field
+        Class B.``form-control``
+        Value model.FName
+        OnChange (fun e -> setModel { model with FName = e.Value })
+    ]
+```
