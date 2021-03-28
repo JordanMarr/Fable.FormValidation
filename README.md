@@ -1,6 +1,12 @@
 # Fable.FormValidation
 A Fable React hook library for validating UI inputs and displaying error messages
 
+## Installation
+Get it from NuGet!
+
+[![NuGet version (Fable.FormValidation)](https://img.shields.io/nuget/v/Fable.FormValidation.svg?style=flat-square)](https://www.nuget.org/packages/Fable.FormValidation/)
+
+
 ## Sample Form Validation
 
 ![image](https://user-images.githubusercontent.com/1030435/112770351-68531680-8ff4-11eb-9e05-e1bee7e6c630.png)
