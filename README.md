@@ -3,7 +3,8 @@ A Fable React hook library for validating UI inputs and displaying error message
 
 ## Sample Form Validation
 
-![image](https://user-images.githubusercontent.com/1030435/112769901-b4e92280-8ff1-11eb-8b00-7913a44d9b20.png)
+![image](https://user-images.githubusercontent.com/1030435/112770351-68531680-8ff4-11eb-9e05-e1bee7e6c630.png)
+
 
 ## Call the `useValidation()` hook
 
@@ -80,4 +81,5 @@ This example features the Feliz date input with a custom rule:
 
 ## Profit!
 
-![image](https://user-images.githubusercontent.com/1030435/112769923-dea24980-8ff1-11eb-9cf0-3c8040553716.png)
+![image](https://user-images.githubusercontent.com/1030435/112770388-959fc480-8ff4-11eb-8818-1c446a66c8b5.png)
+
