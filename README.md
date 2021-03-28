@@ -85,6 +85,16 @@ Html.input [
   errorSummary errors
 ```
 
+## Create an "error" style
+When a form input is invalid, the "error" class will be appended. 
+You must add styling for invalid inputs in your .css file:
+``` css
+.error {
+	border: 1px solid red;
+	background: lightpink;
+}
+```
+
 ## Profit!
 
 ![image](https://user-images.githubusercontent.com/1030435/112770388-959fc480-8ff4-11eb-8818-1c446a66c8b5.png)
