@@ -37,46 +37,46 @@ let Page() =
 ## Add validation rules to inputs:
 
 ``` fsharp
-    input [
-        Ref (rulesFor "First Name" [Required; MinLen 2; MaxLen 50])
-        Class B.``form-control``
-        Value model.FName
-        OnChange (fun e -> setModel { model with FName = e.Value })
-    ]
+input [
+    Ref (rulesFor "First Name" [Required; MinLen 2; MaxLen 50])
+    Class B.``form-control``
+    Value model.FName
+    OnChange (fun e -> setModel { model with FName = e.Value })
+]
 ```
 
 ``` fsharp
-      input [
-          Ref (rulesFor fieldName [ 
-              Required 
-              Regex(@"^\S+@\S+$", "Email")
-          ])
-          Class B.``form-control``
-          Value model.Email
-          OnChange (fun e -> setModel { model with Email = e.Value })
-      ]
+input [
+    Ref (rulesFor "Email" [ 
+        Required 
+        Regex(@"^\S+@\S+$", "Email")
+    ])
+    Class B.``form-control``
+    Value model.Email
+    OnChange (fun e -> setModel { model with Email = e.Value })
+]
 ```
 
 This example features the Feliz date input with a custom rule:
 ``` fsharp 
-    Html.input [
-        prop.ref (rulesFor fieldName [
-            Required
-            CustomRule (
-                match model.BirthDate with
-                | Some bd -> if bd <= DateTime.Now then Ok() else (Error "Birth Date cannot be a future date")
-                | None -> Ok()
-            )
-        ])
-        prop.className "date"
-        prop.type'.date
-        if model.BirthDate.IsSome
-        then prop.value model.BirthDate.Value
-        prop.onChange (fun value ->
-            let success, bd = DateTime.TryParse value
-            if success then setModel { model with BirthDate = Some bd }
+Html.input [
+    prop.ref (rulesFor "Birth Date" [
+        Required
+        CustomRule (
+            match model.BirthDate with
+            | Some bd -> if bd <= DateTime.Now then Ok() else (Error "Birth Date cannot be a future date")
+            | None -> Ok()
         )
-    ]
+    ])
+    prop.className "date"
+    prop.type'.date
+    if model.BirthDate.IsSome
+    then prop.value model.BirthDate.Value
+    prop.onChange (fun value ->
+        let success, bd = DateTime.TryParse value
+        if success then setModel { model with BirthDate = Some bd }
+    )
+]
 ```
 
 ## Add an optional `errorSummary`
@@ -96,11 +96,11 @@ This can cause an issue where React regenerates a different hashcode for the inp
 To resolve this problem, you can add a override "vkey" (validation key) that will be used instead, which will allow Fable.FormValidation to consistently track the input.
 
 ``` fsharp
-    input [
-        Ref (rulesFor "First Name" [Required; MinLen 2; MaxLen 50])
-        Data ("vkey", ("username-" + model.Id)) // This value must uniquely identify this field
-        Class B.``form-control``
-        Value model.FName
-        OnChange (fun e -> setModel { model with FName = e.Value })
-    ]
+input [
+    Ref (rulesFor "First Name" [Required; MinLen 2; MaxLen 50])
+    Data ("vkey", ("username-" + model.Id)) // This value must uniquely identify this field
+    Class B.``form-control``
+    Value model.FName
+    OnChange (fun e -> setModel { model with FName = e.Value })
+]
 ```
