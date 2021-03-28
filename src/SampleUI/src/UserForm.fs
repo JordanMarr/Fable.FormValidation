@@ -103,7 +103,14 @@ let Page() =
                 let fieldName = "Birth Date"
                 requiredField fieldName (
                     Html.input [
-                        prop.ref (rulesFor fieldName [Required])
+                        prop.ref (rulesFor fieldName [
+                            Required
+                            CustomRule (
+                                match model.BirthDate with
+                                | Some bd -> if bd <= DateTime.Now then Ok() else (Error "Birth Date cannot be a future date")
+                                | None -> Ok()
+                            )
+                        ])
                         prop.className "date"
                         prop.type'.date
                         if model.BirthDate.IsSome
