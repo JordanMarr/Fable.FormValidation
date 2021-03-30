@@ -9,7 +9,7 @@ Get it from NuGet!
 
 ## Sample Form Validation
 
-![image](https://user-images.githubusercontent.com/1030435/112770351-68531680-8ff4-11eb-9e05-e1bee7e6c630.png)
+![validation-animated](https://user-images.githubusercontent.com/1030435/112941069-07166a80-90fc-11eb-9d24-abddaa3cd61e.gif)
 
 
 ## Call the `useValidation()` hook
