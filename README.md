@@ -211,4 +211,4 @@ input [
 ```
 
 ## Sample App
-Click here to see a the [full sample](https://github.com/JordanMarr/Fable.FormValidation/blob/main/src/SampleUI/src/UserForm.fs) app using the Fable 3 template, HookRouter and Toastify.
+Click here to see the [full sample](https://github.com/JordanMarr/Fable.FormValidation/blob/main/src/SampleUI/src/UserForm.fs) app using the Fable 3 template, HookRouter and Toastify.
