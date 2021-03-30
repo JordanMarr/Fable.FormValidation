@@ -12,16 +12,20 @@ type Model = {
     FName: string
     LName: string
     Email: string
-    Phone: string
+    FavoriteLang: DotNetLanguage option
     BirthDate: DateTime option
 }
+and DotNetLanguage = 
+    | FSharp
+    | CSharp
+    | VB
 
 let init = 
     { FName = "" 
       LName = ""
       Email = ""
-      Phone = ""
-      BirthDate = None }
+      FavoriteLang = None
+      BirthDate = Some DateTime.Today }
 
 let requiredField fieldName inputCtrl = 
     div [Class B.``mb-2``] [
@@ -36,9 +40,11 @@ let Page() =
     let rulesFor, validate, resetValidation, errors = useValidation() 
 
     let save() = 
-        if validate() 
-        then Toastify.success "Form is valid!"
-        else Toastify.error "Please fix validation errors."
+        if validate() then 
+            resetValidation()
+            Toastify.success "Form is valid!"
+        else 
+            Toastify.error "Please fix validation errors."
         
     let cancel() = 
         resetValidation()
@@ -56,7 +62,7 @@ let Page() =
                 let fieldName = "First Name"
                 requiredField fieldName (
                     input [
-                        Ref (rulesFor fieldName [Required; MinLen 2; MaxLen 50])
+                        Ref (rulesFor fieldName [Required; MaxLen 50])
                         Class B.``form-control``
                         Value model.FName
                         OnChange (fun e -> setModel { model with FName = e.Value })
@@ -66,7 +72,7 @@ let Page() =
                 let fieldName = "Last Name"
                 requiredField fieldName (
                     input [
-                        Ref (rulesFor fieldName [Required; MinLen 2; MaxLen 50])
+                        Ref (rulesFor fieldName [Required; MaxLen 50])
                         Class B.``form-control``
                         Value model.LName
                         OnChange (fun e -> setModel { model with LName = e.Value })
@@ -76,27 +82,63 @@ let Page() =
                 let fieldName = "Email"
                 requiredField fieldName (
                     input [
-                        Ref (rulesFor fieldName [ 
-                            Required 
-                            Regex(@"^\S+@\S+$", "Email")
-                        ])
+                        Ref (rulesFor fieldName [Required; Regex(@"^\S+@\S+$", "Email")])
                         Class B.``form-control``
                         Value model.Email
                         OnChange (fun e -> setModel { model with Email = e.Value })
                     ]
                 )                
 
-                let fieldName = "Phone"
+                let fieldName = "Favorite .NET Language"
+                let rdoGroup = "FavLangGrp"
                 requiredField fieldName (
-                    input [
-                        Ref (rulesFor fieldName [ 
-                            Required 
-                            Regex (@"\(([0-9]{3})\)[-. ]?([0-9]{3})[-. ]?([0-9]{4})", "Phone Number")
+                    div [
+                        Class $"{B.``p-2``} {B.``form-control``}"
+                        Style [Width 200]
+                        Ref (rulesFor fieldName [
+                            CustomRule (
+                                match model.FavoriteLang with
+                                | None -> Error "{0} is required"
+                                | Some lang when lang <> FSharp -> Error "{0} is invalid"
+                                | Some lang -> Ok()
+                            )
                         ])
-                        Placeholder "(###) ###-####"
-                        Class B.``form-control``
-                        Value model.Phone
-                        OnChange (fun e -> setModel { model with Phone = e.Value })
+                    ] [
+                        label [Class B.``mr-4``] [
+                            input [
+                                Type "radio"
+                                Checked (model.FavoriteLang = Some FSharp)
+                                Class B.``mr-1``
+                                RadioGroup rdoGroup
+                                Value "Yes"
+                                OnChange (fun e -> setModel { model with FavoriteLang = Some FSharp })
+                            ]
+                            str "F#"
+                        ]
+
+                        label [Class B.``mr-4``] [
+                            input [
+                                Type "radio"
+                                Checked (model.FavoriteLang = Some CSharp)
+                                Class B.``mr-1``
+                                RadioGroup rdoGroup
+                                Value "No"
+                                OnChange (fun e -> setModel { model with FavoriteLang = Some CSharp })
+                            ]
+                            str "C#"
+                        ]
+
+                        label [Class B.``mr-4``] [
+                            input [
+                                Type "radio"
+                                Checked (model.FavoriteLang = Some VB)
+                                Class B.``mr-1``
+                                RadioGroup rdoGroup
+                                Value "No"
+                                OnChange (fun e -> setModel { model with FavoriteLang = Some VB })
+                            ]
+                            str "VB"
+                        ]
                     ]
                 )
                 
@@ -112,7 +154,7 @@ let Page() =
                             )
                         ])
                         prop.className $"date {B.``form-control``}"
-                        prop.style [style.width 300]
+                        prop.style [style.width 200]
                         prop.type'.date
                         if model.BirthDate.IsSome
                         then prop.value model.BirthDate.Value
