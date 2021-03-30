@@ -26,8 +26,6 @@ let Page() =
         if validate() then 
             resetValidation()
             Toastify.success "Form is valid!"
-        else 
-            Toastify.error "Please fix validation errors."
         
     let cancel() = 
         resetValidation()
@@ -40,7 +38,7 @@ let Page() =
 * `Rule.Required` -> Validates a textbox text value attribute on validate.
 * `Rule.MinLen {n}` -> Validates a textbox text value minimum length on validate.
 * `Rule.MaxLen {n}` -> Validates a textbox text value maximum length on validate.
-* `Rule.Regex (pattern, desc)` -> Validates a textbox text value with a regext pattern.
+* `Rule.Regex (pattern, desc)` -> Validates a textbox text value with a regex pattern.
 
 **Example:**
 
@@ -55,7 +53,7 @@ input [
 
 ``` fsharp
 input [
-    Ref (rulesFor "Email" [ 
+    Ref (rulesFor "User Email" [ 
         Required 
         Regex(@"^\S+@\S+$", "Email")
     ])
@@ -77,7 +75,10 @@ Html.input [
         Required
         CustomRule (
             match model.BirthDate with
-            | Some bd -> if bd <= DateTime.Now then Ok() else (Error "Birth Date cannot be a future date")
+            | Some bd -> 
+                if bd <= DateTime.Now 
+                then Ok() 
+                else (Error "{0} cannot be a future date")
             | None -> Ok()
         )
     ])
@@ -94,7 +95,7 @@ Html.input [
 
 ## Validating Radio and Checkbox Groups
 Validation rules can also be applied to non-input elements!
-To validate a radio button group, you can apply validation to the parent container element:
+To validate a radio button group, you can apply validation to the parent container div:
 
 ``` fsharp
 let fieldName = "Favorite .NET Language"
@@ -169,7 +170,9 @@ Fortunately, `CustomRule` allows to use these in a type-safe manner:
 
 ``` fsharp
 input [
-    Ref (rulesFor "Amount" [CustomRule (model.Amount |> RuleFn.gte 0)])
+    Ref (rulesFor "Amount" [
+        CustomRule (model.Amount |> RuleFn.gte 0)
+    ])
     Class B.``form-control``
     Value model.Amount
     OnChange (fun e -> setModel { model with Amount = e.target?value })
@@ -208,4 +211,4 @@ input [
 ```
 
 ## Sample App
-Click here to see the [full sample](https://github.com/JordanMarr/Fable.FormValidation/blob/main/src/SampleUI/src/UserForm.fs).
+Click here to see a the [full sample](https://github.com/JordanMarr/Fable.FormValidation/blob/main/src/SampleUI/src/UserForm.fs) app using the Fable 3 template, HookRouter and Toastify.
