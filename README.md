@@ -179,7 +179,7 @@ input [
 ]
 ```
 
-## Add an optional `errorSummary`
+## Add an Error Summary
 
 ``` fsharp
 Fable.FormValidation.errorSummary errors
