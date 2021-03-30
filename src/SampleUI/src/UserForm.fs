@@ -43,8 +43,6 @@ let Page() =
         if validate() then 
             resetValidation()
             Toastify.success "Form is valid!"
-        else 
-            Toastify.error "Please fix validation errors."
         
     let cancel() = 
         resetValidation()
