@@ -35,10 +35,10 @@ let Page() =
 ```
 
 ## Common Validation Rules
-* `Rule.Required` -> Validates a textbox text value attribute on validate.
-* `Rule.MinLen {n}` -> Validates a textbox text value minimum length on validate.
-* `Rule.MaxLen {n}` -> Validates a textbox text value maximum length on validate.
-* `Rule.Regex (pattern, desc)` -> Validates a textbox text value with a regex pattern.
+* `Rule.Required` -> Validates a textbox text value attribute at validate time.
+* `Rule.MinLen n` -> Validates a textbox text value minimum length at validate time.
+* `Rule.MaxLen n` -> Validates a textbox text value maximum length at validate time.
+* `Rule.Regex (pattern, desc)` -> Validates a textbox text value with a regex pattern at validate time.
 
 **Example:**
 
