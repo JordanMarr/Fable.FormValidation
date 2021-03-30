@@ -163,11 +163,9 @@ module CustomRules =
 
 ## Built-in Rule Functions
 You can also use the existing rule functions in the `RuleFn` module in your custom rules.
-In fact, some rules, like `gt`, `gte`, `lt` and `lte` only as as functions so that the F# compiler can handle type checking. 
-This is because the common rules like `Required` and `MinLen` all expect a textbox text value, so we would lose out of F# type safety if we tried coerce those text values into numeric values at validate time for numeric validations. 
-Fortnately, the `CustomRule` validation allows to use these in a type-safe manner.
-
-**Example:**
+In fact, some rules, like `gt`, `gte`, `lt` and `lte` exist only as as functions. 
+This is because the common rules like `Required` and `MinLen` all expect a textbox text value, so we would lose out of F# type safety if we tried coerce those text values into numeric values at validate time. 
+Fortunately, `CustomRule` allows to use these in a type-safe manner:
 
 ``` fsharp
 input [
