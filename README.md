@@ -23,9 +23,11 @@ let Page() =
     let rulesFor, validate, resetValidation, errors = useValidation() 
 
     let save() = 
-        if validate() 
-        then Toastify.success "Form is valid!"
-        else Toastify.error "Please fix validation errors."
+        if validate() then 
+            resetValidation()
+            Toastify.success "Form is valid!"
+        else 
+            Toastify.error "Please fix validation errors."
         
     let cancel() = 
         resetValidation()
