@@ -40,7 +40,7 @@ let Page() =
 * `Rule.Required` -> Validates a textbox text value attribute on validate.
 * `Rule.MinLen {n}` -> Validates a textbox text value minimum length on validate.
 * `Rule.MaxLen {n}` -> Validates a textbox text value maximum length on validate.
-* `Rule.Regex (pattern)` -> 
+* `Rule.Regex (pattern, desc)` -> Validates a textbox text value with a regext pattern.
 
 **Example:**
 
