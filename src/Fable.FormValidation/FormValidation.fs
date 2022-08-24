@@ -78,11 +78,6 @@ let private validateAndReturnErrors (registeredInputs: RegisteredInputValidators
         yield! fieldErrors 
     ] |> List.distinct
 
-let private clearInputErrors (registeredInputValidators: RegisteredInputValidators) = 
-    for (el, _, _) in registeredInputValidators.Values do 
-        el.classList.remove("error")
-        el.removeAttribute("title")
-
 //// A function that registers a field name and a list of validators with a Ref function.
 type RulesFor = FieldName -> Rule list -> Element -> unit
 type Validate = unit -> bool
@@ -102,7 +97,7 @@ let useValidation() =
             let errs = validateAndReturnErrors(registeredInputValidators)
             if errs <> errors then // NOTE: This check prevents "Maximum update depth exceeded" error!!
                 setErrors errs
-                clearInputErrors(registeredInputValidators)
+                registeredInputValidators.Clear()
     )
 
     /// Creates a Ref hook for  registering an input for validation (should be set to an input's "Ref" attribute)
@@ -127,7 +122,7 @@ let useValidation() =
     /// Disables auto-validation refresh, clears input errors and error summary.
     let resetValidation() = 
         setEnabled false
-        clearInputErrors(registeredInputValidators)
+        registeredInputValidators.Clear()
         setErrors []
             
     (rulesFor: RulesFor), (validate: Validate), (resetValidation: ResetValidation), (errors: ValidationErrors)
