@@ -52,28 +52,22 @@ module RuleFn =
         if m.Success then Ok() else Error (sprintf "{0} is not a valid %s" description)
 
 /// Validates registered fields, applies or removes markup, and returns a list of error messages.
-let private validateAndReturnErrors (registeredInputs: RegisteredInputValidators) =
+let private validateAndReturnErrors extract enchance (registeredInputs: RegisteredInputValidators) =
     let registrations = registeredInputs.Values
     [ for (el, fieldName, rules) in registrations do         
         let fieldErrors = 
             rules
             |> List.map (function 
-                | Required ->   el?value |> RuleFn.required
-                | MaxLen max -> el?value |> RuleFn.maxLen max
-                | MinLen min -> el?value |> RuleFn.minLen min
-                | Regex (pattern, desc) -> el?value |> RuleFn.regex pattern desc
+                | Required -> extract el |> RuleFn.required
+                | MaxLen max -> extract el |> RuleFn.maxLen max
+                | MinLen min -> extract el |> RuleFn.minLen min
+                | Regex (pattern, desc) -> extract el |> RuleFn.regex pattern desc
                 | CustomRule result -> result
             )
             |> List.choose (function | Error err -> Some err | _ -> None)
             |> List.map (fun err -> System.String.Format(err, fieldName))
 
-        // Apply or remove error highlighting to fields
-        if fieldErrors.Length > 0 then
-            el.classList.add("error")
-            el.setAttribute("title", fieldErrors.[0])
-        else
-            el.classList.remove("error")
-            el.removeAttribute("title")
+        enchance el fieldErrors
 
         yield! fieldErrors 
     ] |> List.distinct
@@ -84,48 +78,90 @@ type Validate = unit -> bool
 type ResetValidation = unit -> unit
 type ValidationErrors = string list
 
-/// A hook that provides form validation.
-let useValidation() =
-    /// Tracks a list of registered elements (by their HashCode or data-vkey) with their validators.
-    let registeredInputValidatorsRef = Hooks.useRef(Dictionary<InputKey, Element * FieldName * Rule list>())
-    let registeredInputValidators = registeredInputValidatorsRef.current
-    let errors, setErrors = useState<string list>([])
-    let enabled, setEnabled = useState(false)
+module Validation =
+    type ValidationArgs =
+        { Extractor: (Element -> string) option
+          Enchancer: (Element -> ValidationErrors -> unit) option }
 
-    Hooks.useEffect(fun () -> 
-        if enabled then
-            let errs = validateAndReturnErrors(registeredInputValidators)
-            if errs <> errors then // NOTE: This check prevents "Maximum update depth exceeded" error!!
-                setErrors errs
-                registeredInputValidators.Clear()
-    )
+    let defaultArgs = 
+        { Extractor = None
+          Enchancer = None }
 
-    /// Creates a Ref hook for  registering an input for validation (should be set to an input's "Ref" attribute)
-    let rulesForRef = Hooks.useRef(fun (fieldName: FieldName) (rules: Rule list) (el: Element) ->
-        if el <> null then
-            let key =
-                if el.hasAttribute "data-vkey"
-                then el.getAttribute "data-vkey" // This attribute allows user to track an input through toggled visibility
-                else el.GetHashCode().ToString()
+    let enchanceDefault (el: Element) (fieldErrors: ValidationErrors) =
+        // Apply or remove error highlighting to fields
+        if fieldErrors.Length > 0 then
+            el.classList.add("error")
+            el.setAttribute("title", fieldErrors.[0])
+        else
+            el.classList.remove("error")
+            el.removeAttribute("title")
 
-            registeredInputValidators.[key] <- (el, fieldName, rules)
-    )
-    let rulesFor : RulesFor = rulesForRef.current
+    let extractDefault (el: Element): string = el?value
+        
+    /// A hook that provides form validation.
+    let useValidation (args: ValidationArgs) =
+        /// Tracks a list of registered elements (by their HashCode or data-vkey) with their validators.
+        let registeredInputValidatorsRef = Hooks.useRef(Dictionary<InputKey, Element * FieldName * Rule list>())
+        let registeredInputValidators = registeredInputValidatorsRef.current
+        let errors, setErrors = useState<string list>([])
+        let enabled, setEnabled = useState(false)
 
-    /// Enables auto-validation refresh, runs registered validation rules, then returns true if valid.
-    let validate() =
-        setEnabled true
-        let errs = validateAndReturnErrors(registeredInputValidators)
-        setErrors errs
-        errs.Length = 0
+        let extractor = defaultArg args.Extractor extractDefault
+        let enchancer = defaultArg args.Enchancer enchanceDefault
 
-    /// Disables auto-validation refresh, clears input errors and error summary.
-    let resetValidation() = 
-        setEnabled false
-        registeredInputValidators.Clear()
-        setErrors []
-            
-    (rulesFor: RulesFor), (validate: Validate), (resetValidation: ResetValidation), (errors: ValidationErrors)
+        Hooks.useEffect(fun () -> 
+            if enabled then
+                let errs = validateAndReturnErrors extractor enchancer (registeredInputValidators)
+                if errs <> errors then // NOTE: This check prevents "Maximum update depth exceeded" error!!
+                    setErrors errs
+                    registeredInputValidators.Clear()
+        )
+
+        /// Creates a Ref hook for  registering an input for validation (should be set to an input's "Ref" attribute)
+        let rulesForRef = Hooks.useRef(fun (fieldName: FieldName) (rules: Rule list) (el: Element) ->
+            if el <> null then
+                let key =
+                    if el.hasAttribute "data-vkey"
+                    then el.getAttribute "data-vkey" // This attribute allows user to track an input through toggled visibility
+                    else el.GetHashCode().ToString()
+
+                registeredInputValidators.[key] <- (el, fieldName, rules)
+        )
+        let rulesFor : RulesFor = rulesForRef.current
+
+        /// Enables auto-validation refresh, runs registered validation rules, then returns true if valid.
+        let validate() =
+            setEnabled true
+            let errs = validateAndReturnErrors extractor enchancer (registeredInputValidators)
+            setErrors errs
+            errs.Length = 0
+
+        /// Disables auto-validation refresh, clears input errors and error summary.
+        let resetValidation() = 
+            setEnabled false
+            registeredInputValidators.Clear()
+            setErrors []
+                
+        (rulesFor: RulesFor), (validate: Validate), (resetValidation: ResetValidation), (errors: ValidationErrors)
+    
+    let withExtractor f args = 
+        {args with Extractor = Some(f)}
+
+    let withEnchancer f args = 
+        {args with Enchancer = Some(f)}
+
+    let withClassEnchance classes args = 
+        let enchancer (el: Element) (fieldErrors: ValidationErrors) = 
+            if fieldErrors.Length > 0 then
+                el.classList.add(classes)
+            else
+                el.classList.remove(classes)
+        {args with Enchancer=Some(enchancer)}
+
+
+let useValidation() = 
+    Validation.defaultArgs 
+    |> Validation.useValidation
 
 open Fable.React.Props
 
