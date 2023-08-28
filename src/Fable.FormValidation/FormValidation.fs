@@ -1,4 +1,5 @@
 ﻿module Fable.FormValidation
+
 open Fable.React
 open System.Collections.Generic
 open Browser.Types
@@ -22,28 +23,28 @@ module RuleFn =
     /// Requires that a given string is not null or white space.
     let required (value: string) =
         if System.String.IsNullOrWhiteSpace(value) then Error "{0} is required" else Ok()
-    
+
     /// Requires that an obj is not null.
     let requiredObj (value: obj) =
         match value |> Option.ofObj with
         | Some _ -> Ok()
         | None -> Error "{0} is required"
-    
+
     /// Requires that a string is not shorter than the given min length.
     let minLen (min: int) (value: string) = if (string value).Length < min then Error (sprintf "{0} must be at least %i characters" min) else Ok()
-    
+
     /// Requires that a string is not longer than the given max length.
     let maxLen (max: int) (value: string) = if (string value).Length > max then Error (sprintf "{0} exceeds the max length of %i" max) else Ok()
 
     /// Value must be Greater Than n.
     let gt n value = if value > n then Ok() else Error (sprintf "{0} must be greater than %A" n)
-    
+
     /// Value must be Greater Than or Equal to n.
     let gte n value = if value >= n then Ok() else Error (sprintf "{0} must be greater than %A" n)
-    
+
     /// Value must be Less Than n.
     let lt n value = if value < n then Ok() else Error (sprintf "{0} must be greater than %A" n)
-    
+
     /// Value must be Less Than or Equal to n.
     let lte n value = if value <= n then Ok() else Error (sprintf "{0} must be greater than %A" n)
 
@@ -78,40 +79,38 @@ type Validate = unit -> bool
 type ResetValidation = unit -> unit
 type ValidationErrors = string list
 
-module Validation =
-    type ValidationArgs =
-        { Extractor: (Element -> string) option
-          Enchancer: (Element -> ValidationErrors -> unit) option }
+type ValidationArgs =
+    { 
+        /// A function that extracts a value from a form element.
+        GetValue: (Element -> string) option
+        /// A function that applies or removes an error highlighting style to a form element.
+        SetStyle: (Element -> ValidationErrors -> unit) option 
+    }
 
-    let defaultArgs = 
-        { Extractor = None
-          Enchancer = None }
+let setStyleDefault (el: Element) (fieldErrors: ValidationErrors) =
+    // Apply or remove error highlighting to fields
+    if fieldErrors.Length > 0 then
+        el.classList.add("error")
+        el.setAttribute("title", fieldErrors.[0])
+    else
+        el.classList.remove("error")
+        el.removeAttribute("title")
 
-    let enchanceDefault (el: Element) (fieldErrors: ValidationErrors) =
-        // Apply or remove error highlighting to fields
-        if fieldErrors.Length > 0 then
-            el.classList.add("error")
-            el.setAttribute("title", fieldErrors.[0])
-        else
-            el.classList.remove("error")
-            el.removeAttribute("title")
+let getValueDefault (el: Element): string = el?value
 
-    let extractDefault (el: Element): string = el?value
-        
-    /// A hook that provides form validation.
-    let useValidation (args: ValidationArgs) =
+let internal useValidationImpl (args: ValidationArgs) =
         /// Tracks a list of registered elements (by their HashCode or data-vkey) with their validators.
         let registeredInputValidatorsRef = Hooks.useRef(Dictionary<InputKey, Element * FieldName * Rule list>())
         let registeredInputValidators = registeredInputValidatorsRef.current
         let errors, setErrors = useState<string list>([])
         let enabled, setEnabled = useState(false)
 
-        let extractor = defaultArg args.Extractor extractDefault
-        let enchancer = defaultArg args.Enchancer enchanceDefault
+        let getValue = defaultArg args.GetValue getValueDefault
+        let setStyle = defaultArg args.SetStyle setStyleDefault
 
         Hooks.useEffect(fun () -> 
             if enabled then
-                let errs = validateAndReturnErrors extractor enchancer (registeredInputValidators)
+                let errs = validateAndReturnErrors getValue setStyle (registeredInputValidators)
                 if errs <> errors then // NOTE: This check prevents "Maximum update depth exceeded" error!!
                     setErrors errs
                     registeredInputValidators.Clear()
@@ -132,7 +131,7 @@ module Validation =
         /// Enables auto-validation refresh, runs registered validation rules, then returns true if valid.
         let validate() =
             setEnabled true
-            let errs = validateAndReturnErrors extractor enchancer (registeredInputValidators)
+            let errs = validateAndReturnErrors getValue setStyle (registeredInputValidators)
             setErrors errs
             errs.Length = 0
 
@@ -141,27 +140,12 @@ module Validation =
             setEnabled false
             registeredInputValidators.Clear()
             setErrors []
-                
+            
         (rulesFor: RulesFor), (validate: Validate), (resetValidation: ResetValidation), (errors: ValidationErrors)
-    
-    let withExtractor f args = 
-        {args with Extractor = Some(f)}
 
-    let withEnchancer f args = 
-        {args with Enchancer = Some(f)}
-
-    let withClassEnchance classes args = 
-        let enchancer (el: Element) (fieldErrors: ValidationErrors) = 
-            if fieldErrors.Length > 0 then
-                el.classList.add(classes)
-            else
-                el.classList.remove(classes)
-        {args with Enchancer=Some(enchancer)}
-
-
-let useValidation() = 
-    Validation.defaultArgs 
-    |> Validation.useValidation
+/// A hook that provides form input validation.
+let useValidation () = 
+    useValidationImpl { GetValue = None; SetStyle = None }
 
 open Fable.React.Props
 
@@ -178,3 +162,12 @@ let errorSummary (errors: string seq) =
         ]
     else 
         nothing
+
+type FormValidation = 
+    /// <summary>A hook that provides form input validation.</summary>
+    /// <param name="getValue">A strategy for extracting the value from form input controls.</param>
+    /// <param name="setStyle">A strategy for adding or removing error styles to form input controls.</param>
+    /// <returns>A tuple: `rulesFor`, `validate`, `resetValidation`, `validationErrors`</returns>
+    static member useValidation(?getValue: Element -> string, ?setStyle: Element -> ValidationErrors -> unit) = 
+        useValidationImpl { GetValue = getValue; SetStyle = setStyle }
+    
