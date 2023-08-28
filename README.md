@@ -203,7 +203,7 @@ To resolve this problem, you can add a override "vkey" (validation key) that wil
 ``` fsharp
 input [
     Ref (rulesFor "First Name" [Required; MinLen 2; MaxLen 50])
-    Data ("vkey", ("username-" + model.Id)) // This value must uniquely identify this field
+    Data ("vkey", $"username-{model.Id}") // This value must uniquely identify this field
     Class B.``form-control``
     Value model.FName
     OnChange (fun e -> setModel { model with FName = e.Value })
