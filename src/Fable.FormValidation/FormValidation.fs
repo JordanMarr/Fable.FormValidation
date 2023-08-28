@@ -99,49 +99,49 @@ let setStyleDefault (el: Element) (fieldErrors: ValidationErrors) =
 let getValueDefault (el: Element): string = el?value
 
 let internal useValidationImpl (args: ValidationArgs) =
-        /// Tracks a list of registered elements (by their HashCode or data-vkey) with their validators.
-        let registeredInputValidatorsRef = Hooks.useRef(Dictionary<InputKey, Element * FieldName * Rule list>())
-        let registeredInputValidators = registeredInputValidatorsRef.current
-        let errors, setErrors = useState<string list>([])
-        let enabled, setEnabled = useState(false)
+    /// Tracks a list of registered elements (by their HashCode or data-vkey) with their validators.
+    let registeredInputValidatorsRef = Hooks.useRef(Dictionary<InputKey, Element * FieldName * Rule list>())
+    let registeredInputValidators = registeredInputValidatorsRef.current
+    let errors, setErrors = useState<string list>([])
+    let enabled, setEnabled = useState(false)
 
-        let getValue = defaultArg args.GetValue getValueDefault
-        let setStyle = defaultArg args.SetStyle setStyleDefault
+    let getValue = defaultArg args.GetValue getValueDefault
+    let setStyle = defaultArg args.SetStyle setStyleDefault
 
-        Hooks.useEffect(fun () -> 
-            if enabled then
-                let errs = validateAndReturnErrors getValue setStyle (registeredInputValidators)
-                if errs <> errors then // NOTE: This check prevents "Maximum update depth exceeded" error!!
-                    setErrors errs
-                    registeredInputValidators.Clear()
-        )
-
-        /// Creates a Ref hook for  registering an input for validation (should be set to an input's "Ref" attribute)
-        let rulesForRef = Hooks.useRef(fun (fieldName: FieldName) (rules: Rule list) (el: Element) ->
-            if el <> null then
-                let key =
-                    if el.hasAttribute "data-vkey"
-                    then el.getAttribute "data-vkey" // This attribute allows user to track an input through toggled visibility
-                    else el.GetHashCode().ToString()
-
-                registeredInputValidators.[key] <- (el, fieldName, rules)
-        )
-        let rulesFor : RulesFor = rulesForRef.current
-
-        /// Enables auto-validation refresh, runs registered validation rules, then returns true if valid.
-        let validate() =
-            setEnabled true
+    Hooks.useEffect(fun () -> 
+        if enabled then
             let errs = validateAndReturnErrors getValue setStyle (registeredInputValidators)
-            setErrors errs
-            errs.Length = 0
+            if errs <> errors then // NOTE: This check prevents "Maximum update depth exceeded" error!!
+                setErrors errs
+                registeredInputValidators.Clear()
+    )
 
-        /// Disables auto-validation refresh, clears input errors and error summary.
-        let resetValidation() = 
-            setEnabled false
-            registeredInputValidators.Clear()
-            setErrors []
+    /// Creates a Ref hook for  registering an input for validation (should be set to an input's "Ref" attribute)
+    let rulesForRef = Hooks.useRef(fun (fieldName: FieldName) (rules: Rule list) (el: Element) ->
+        if el <> null then
+            let key =
+                if el.hasAttribute "data-vkey"
+                then el.getAttribute "data-vkey" // This attribute allows user to track an input through toggled visibility
+                else el.GetHashCode().ToString()
+
+            registeredInputValidators.[key] <- (el, fieldName, rules)
+    )
+    let rulesFor : RulesFor = rulesForRef.current
+
+    /// Enables auto-validation refresh, runs registered validation rules, then returns true if valid.
+    let validate() =
+        setEnabled true
+        let errs = validateAndReturnErrors getValue setStyle (registeredInputValidators)
+        setErrors errs
+        errs.Length = 0
+
+    /// Disables auto-validation refresh, clears input errors and error summary.
+    let resetValidation() = 
+        setEnabled false
+        registeredInputValidators.Clear()
+        setErrors []
             
-        (rulesFor: RulesFor), (validate: Validate), (resetValidation: ResetValidation), (errors: ValidationErrors)
+    (rulesFor: RulesFor), (validate: Validate), (resetValidation: ResetValidation), (errors: ValidationErrors)
 
 /// A hook that provides form input validation.
 let useValidation () = 
