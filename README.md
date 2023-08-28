@@ -210,5 +210,35 @@ input [
 ]
 ```
 
+## Overriding the `getValue` and `setStyle` functions
+You may now, optionally, pass in custom `getValue` and `setStyle` implementations. Use these if you require custom logic to pull your value from a control or want to apply a different error style.
+
+```F#
+let rulesFor, validate, resetValidation, errors = 
+    FormValidation.useValidation(
+        setStyle = setStyleCustom,
+        getValue = getValueCustom
+    )
+```
+
+Here are the default implementations:
+```F#
+let setStyleDefault (el: Element) (fieldErrors: ValidationErrors) =
+    // Apply or remove error highlighting to fields
+    if fieldErrors.Length > 0 then
+        el.classList.add("error")
+        el.setAttribute("title", fieldErrors.[0])
+    else
+        el.classList.remove("error")
+        el.removeAttribute("title")
+
+let getValueDefault (el: Element) : string =
+    // NOTE: assumes you have opened "Fable.Core.JsInterop"
+    el?value
+```
+
+`setStyleDefault` adds or removes the "error" css class and a title/tooltip of the first error.
+`getValueDefault` pulls the element's `value` property for validation.
+
 ## Sample App
 Click here to see the [full sample](https://github.com/JordanMarr/Fable.FormValidation/blob/main/src/SampleUI/src/UserForm.fs) app using the Fable 3 template, HookRouter and Toastify.
