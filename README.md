@@ -221,6 +221,8 @@ let rulesFor, validate, resetValidation, errors =
     )
 ```
 
+_Please note that `FormValidation.useValidation` is a new static method with optional parameters. The original `useValidation` function still exists for backwards compatibility._
+
 Here are the default implementations:
 ```F#
 let setStyleDefault (el: Element) (fieldErrors: ValidationErrors) =
