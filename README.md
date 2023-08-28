@@ -242,5 +242,36 @@ let getValueDefault (el: Element) : string =
 `setStyleDefault` adds or removes the "error" css class and a title/tooltip of the first error.
 `getValueDefault` pulls the element's `value` property for validation.
 
+### Targetting specific controls
+You can target specific input controls in your custom handlers by checking for a special class name. 
+For example, if you wanted to override the error highlighting to use a different class for a subset of controls, you could add mark them with a custom class name, "custom-validation":
+
+```F#
+	input [
+	    Ref (rulesFor "Project Name" [ Required ])
+	    Class "form-control custom-error" projName"
+	    Value model.Project.Name
+	    OnChange (fun e -> dispatch (SetProject { model.Project with Name = e.Value }))
+	]
+```
+
+Then, you can check for that class in your `setStyle` handler:
+
+```F#
+let setStyle (el: Element) (fieldErrors: ValidationErrors) =
+    let errorClass = 
+        if el.className.Contains "custom-validation"
+        then "custom-error" 
+        else "error"
+
+    // Apply or remove error highlighting to fields
+    if fieldErrors.Length > 0 then
+        el.classList.add(errorClass)
+        el.setAttribute("title", fieldErrors.[0])
+    else
+        el.classList.remove(errorClass)
+        el.removeAttribute("title")
+```
+
 ## Sample App
 Click here to see the [full sample](https://github.com/JordanMarr/Fable.FormValidation/blob/main/src/SampleUI/src/UserForm.fs) app using the Fable 3 template, HookRouter and Toastify.
