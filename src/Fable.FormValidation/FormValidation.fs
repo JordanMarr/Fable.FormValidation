@@ -53,7 +53,7 @@ module RuleFn =
         if m.Success then Ok() else Error (sprintf "{0} is not a valid %s" description)
 
 /// Validates registered fields, applies or removes markup, and returns a list of error messages.
-let private validateAndReturnErrors extract enchance (registeredInputs: RegisteredInputValidators) =
+let private validateAndReturnErrors extract setStyle (registeredInputs: RegisteredInputValidators) =
     let registrations = registeredInputs.Values
     [ for (el, fieldName, rules) in registrations do         
         let fieldErrors = 
@@ -68,7 +68,7 @@ let private validateAndReturnErrors extract enchance (registeredInputs: Register
             |> List.choose (function | Error err -> Some err | _ -> None)
             |> List.map (fun err -> System.String.Format(err, fieldName))
 
-        enchance el fieldErrors
+        setStyle el fieldErrors
 
         yield! fieldErrors 
     ] |> List.distinct
@@ -136,10 +136,16 @@ let internal useValidationImpl (args: ValidationArgs) =
         errs.Length = 0
 
     /// Disables auto-validation refresh, clears input errors and error summary.
-    let resetValidation() = 
-        setEnabled false
+    let resetValidation() =         
+        // Reset error styles and error titles
+        registeredInputValidators
+        |> Seq.iter (fun kvp -> 
+            let (el, _, _) = kvp.Value
+            setStyleDefault el []
+        )
         registeredInputValidators.Clear()
         setErrors []
+        setEnabled false
             
     (rulesFor: RulesFor), (validate: Validate), (resetValidation: ResetValidation), (errors: ValidationErrors)
 
