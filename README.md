@@ -20,7 +20,9 @@ open Fable.FormValidation
 [<ReactComponent>]
 let Page() = 
     let model, setModel = React.useState init
-    let rulesFor, validate, resetValidation, errors = useValidation() 
+    let rulesFor, validate, resetValidation, errors = useValidation()
+
+    Fable.FormValidation.errorSummary errors
 
     let save() = 
         if validate() then 
